@@ -210,6 +210,11 @@ of the highest-score quintile.
 
 Median April CTR declined from approximately 0.2683% in Q1 to 0% in Q5.
 
+
+![Mean April CTR by March opportunity-score quintile](outputs/april_ctr_by_score_quintile.png)
+
+**Figure 1.** Mean April CTR by March opportunity-score quintile. Higher March opportunity scores are associated with weaker subsequent April CTR.
+
 ### Missing data
 
 April average position was unavailable for 1,121 validation items. Those items were excluded only from the April-position correlation analysis.
