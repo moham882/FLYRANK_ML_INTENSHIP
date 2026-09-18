@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refresh / Content Opportunity Scoring — Capstone Research Paper</title>
+
+<style>
+body {
+    margin: 0;
+    background: #f5f7fb;
+    color: #172033;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.7;
+}
+
+main {
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 50px;
+    background: white;
+    box-shadow: 0 10px 35px rgba(15,31,61,0.08);
+    border-radius: 14px;
+}
+
+h1 {
+    color: #0f1f3d;
+    line-height: 1.2;
+    margin-bottom: 30px;
+}
+
+h2 {
+    color: #0f1f3d;
+    margin-top: 45px;
+    border-bottom: 1px solid #e5e9f0;
+    padding-bottom: 8px;
+}
+
+h3 {
+    color: #0f1f3d;
+    margin-top: 30px;
+}
+
+p {
+    margin: 12px 0;
+}
+
+ul, ol {
+    padding-left: 28px;
+}
+
+code {
+    background: #f0f3f8;
+    padding: 3px 7px;
+    border-radius: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th, td {
+    border: 1px solid #dfe4ec;
+    padding: 10px 12px;
+    text-align: left;
+}
+
+th {
+    background: #f5f7fb;
+}
+
+.chart-card {
+    margin: 35px 0;
+    padding: 20px;
+    background: #f8f9fc;
+    border: 1px solid #e2e6ee;
+    border-radius: 12px;
+}
+
+.chart-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.chart-card figcaption {
+    margin-top: 14px;
+    font-size: 0.92rem;
+    color: #4d596d;
+}
+
+@media (max-width: 700px) {
+    main {
+        margin: 0;
+        padding: 25px;
+        border-radius: 0;
+    }
+}
+</style>
+</head>
+
+<body>
+<main>
+<h1>Capstone Report — Refresh / Content Opportunity Scoring</h1>
+<p>Author: Mohammed Ibrahim SH</p>
+<p>Lane: Refresh / Content Opportunity Scoring</p>
+<p>Repository: https://github.com/moham882/flyrank_ml_internship</p>
+<p>Date: September 2026</p>
+<h2>0. Abstract</h2>
+<p>This study asks whether observed search and content-performance signals can be used to rank pages for refresh or review. Using the FlyRank ML Internship warehouse, March 2026 search-performance data was used as the feature window and April 2026 data was held out for time-aware validation across 116,114 eligible content items. A transparent opportunity score combined CTR opportunity relative to position-band benchmarks with ranking-position opportunity, and was compared with a simple CTR-only baseline using Spearman rank correlations and score-quintile analysis. The combined score showed a moderate negative association with subsequent April CTR (ρ = −0.468, p &lt; 0.001) and a stronger association with April average position (ρ = +0.544, p &lt; 0.001), but the CTR-only baseline had a stronger association with April CTR (ρ = −0.512, p &lt; 0.001); the lowest-score quintile also had 3.36× the mean April CTR of the highest quintile. The resulting score is therefore best used as a directional editorial review signal that helps prioritize pages for human inspection, not as a causal prediction that refreshing a page will improve performance.</p>
+<h2>1. Problem framing</h2>
+<p><strong>Decision supported:</strong></p>
+<p>Which content pages should an editor prioritize for refresh or review?</p>
+<p><strong>Unit of analysis:</strong></p>
+<p>Individual content/page identified by `content_hash_id`, using March 2026 as the feature window.</p>
+<p><strong>Output:</strong></p>
+<p>A continuous opportunity score that ranks eligible pages from lower to higher review opportunity, together with a reason code and recommended action.</p>
+<p><strong>Human action:</strong></p>
+<p>An editor reviews high-scoring pages and determines whether the page requires a refresh, title/snippet improvement, deeper content coverage, or no change.</p>
+<p><strong>Cost of a wrong call:</strong></p>
+<ul>
+<li>False positive: editorial time may be spent reviewing a page that does not need changes.</li>
+<ul>
+<li>False negative: a potentially useful content opportunity may be missed.</li>
+<p><strong>Why use data/ML:</strong></p>
+<p>The warehouse contains search-performance signals such as impressions, clicks, CTR, and average position. A repeatable scoring method can combine these signals and create a consistent review queue.</p>
+<p><strong>Research question:</strong></p>
+<p>Can observed search and content-performance signals be used to rank pages for refresh or review?</p>
+<p><strong>Framing:</strong></p>
+<p>This is a decision-support system. The March score is compared with observed April performance for directional validation. The analysis does not establish that refreshing a page causes its performance to improve.</p>
+<h2>2. Data safety</h2>
+<p><strong>Feature window</strong></p>
+<ul>
+<li>March 2026</li>
+<p><strong>Validation window</strong></p>
+<ul>
+<li>April 2026</li>
+<p>The data was aggregated at the `content_hash_id` level.</p>
+<p><strong>Primary scoring signals included:</strong></p>
+<ul>
+<li>`gsc_impressions`</li>
+<ul>
+<li>`gsc_clicks`</li>
+<ul>
+<li>CTR</li>
+<ul>
+<li>`gsc_avg_position`</li>
+<p>Pages with fewer than 50 March impressions were excluded from the scoring population.</p>
+<p>Eligible March content items: 116,114.</p>
+<p>April data was used only for validation and included:</p>
+<ul>
+<li>April impressions</li>
+<ul>
+<li>April clicks</li>
+<ul>
+<li>April CTR</li>
+<ul>
+<li>April average position</li>
+<ul>
+<li>April sessions</li>
+<ul>
+<li>April engaged sessions</li>
+<p>April performance was not used to calculate the March opportunity score.</p>
+<p>No future-derived label such as April trend direction or April percentage change was used as a March scoring feature.</p>
+<p>`content_hash_id` was used for joining and output identification, not as a predictive feature.</p>
+<p>The report and ranked outputs do not intentionally include client names, domains, private queries, credentials, or raw client-identifying exports.</p>
+<p>An explicit leakage check confirmed that April validation fields were not present in the March opportunity-score inputs.</p>
+<h2>3. Baseline</h2>
+<p>The baseline ranks pages using March CTR only, with lower CTR receiving higher review priority.</p>
+<p>The baseline was evaluated on the same 116,114 pages and against the same April validation period.</p>
+<table><tr><th>Method</th><th>Spearman ρ with April CTR</th></tr>
+<tr><td>CTR-only baseline</td><td>−0.512</td></tr>
+<tr><td>Combined opportunity score</td><td>−0.468</td></tr>
+<p>Both associations were statistically significant at p &lt; 0.001.</p>
+<p>The combined score therefore did not outperform the simple CTR-only baseline for the April CTR metric. This negative result is retained rather than selecting a more favorable interpretation.</p>
+<p>The baseline is directional and observational rather than causal.</p>
+<h2>4. Model / analysis</h2>
+<p>The analysis uses a transparent opportunity-scoring method rather than a trained predictive model.</p>
+<p><strong>Signals</strong></p>
+<p>Two March signals were combined:</p>
+<ol>
+<li>CTR opportunity</li>
+<ol>
+<li>Ranking-position opportunity</li>
+<p><strong>Step 1 — CTR</strong></p>
+<p>CTR was calculated as:</p>
+<code>clicks / impressions</code>
+<p>for pages with positive impressions.</p>
+<p><strong>Step 2 — Position-band CTR benchmarks</strong></p>
+<p>Pages were grouped into position bands:</p>
+<ul>
+<li>1–3</li>
+<ul>
+<li>4–5</li>
+<ul>
+<li>6–10</li>
+<ul>
+<li>11–20</li>
+<ul>
+<li>21–50</li>
+<ul>
+<li>51–100</li>
+<p>For each band, the median March CTR was calculated.</p>
+<p><strong>Step 3 — CTR opportunity</strong></p>
+<p>For each page:</p>
+<code>CTR gap = position-band benchmark CTR − page CTR</code>
+<p>Negative gaps were clipped to zero.</p>
+<p><strong>Step 4 — Ranking opportunity</strong></p>
+<p>Average position was used as the ranking-opportunity signal and clipped to the range 0–50.</p>
+<p>Higher position numbers represent weaker search ranking.</p>
+<p><strong>Step 5 — Normalization</strong></p>
+<p>Both signals were converted to percentile ranks.</p>
+<p><strong>Step 6 — Combined opportunity score</strong></p>
+<p>The two normalized signals were combined with equal weighting:</p>
+<ul>
+<li>50% CTR opportunity</li>
+<ul>
+<li>50% ranking-position opportunity</li>
+<p><strong>Eligibility</strong></p>
+<p>Only pages with at least 50 March impressions were included.</p>
+<p><strong>Reason codes</strong></p>
+<p>Example:</p>
+<code>LOW_CTR_AND_WEAK_POSITION</code>
+<p><strong>Recommended action:</strong></p>
+<p>Refresh / Improve CTR</p>
+<p>The validation target was whether higher March scores were associated with weaker subsequent April search performance.</p>
+
+<figure class="chart-card">
+  <img
+    src="assets/april_ctr_by_score_quintile.png"
+    alt="Mean April CTR by March opportunity-score quintile"
+    loading="lazy"
+  >
+  <figcaption>
+    Figure 1. Mean April CTR by March opportunity-score quintile.
+    Higher March opportunity scores are associated with weaker subsequent April CTR.
+  </figcaption>
+</figure>
+
+<h2>5. Evaluation</h2>
+<p>Validation used a time-aware design:</p>
+<p><strong>March 2026 score → April 2026 observed performance</strong></p>
+<p>All 116,114 eligible March content items matched an April content record.</p>
+<h3>April CTR</h3>
+<p>The combined opportunity score had a moderate negative association with April CTR:</p>
+<p><strong>Spearman ρ = −0.468, p &lt; 0.001</strong></p>
+<p>The CTR-only baseline showed:</p>
+<p><strong>Spearman ρ = −0.512, p &lt; 0.001</strong></p>
+<p>Therefore, the baseline showed a stronger association with subsequent April CTR.</p>
+<h3>April average position</h3>
+<p>Among the 114,993 items with observed April average position:</p>
+<table><tr><th>Method</th><th>Spearman ρ with April position</th></tr>
+<tr><td>CTR-only baseline</td><td>+0.324</td></tr>
+<tr><td>Combined opportunity score</td><td>+0.544</td></tr>
+<p>Because a larger average-position number represents a weaker ranking, the positive association indicates that higher March opportunity scores tended to be associated with weaker subsequent ranking position.</p>
+<h3>Score-quintile validation</h3>
+<p>The lowest March opportunity-score quintile had:</p>
+<p><strong>Mean April CTR: 0.4017%</strong></p>
+<p>The highest March opportunity-score quintile had:</p>
+<p><strong>Mean April CTR: 0.1195%</strong></p>
+<p>The lowest-score quintile therefore had approximately:</p>
+<p><strong>3.36× the mean April CTR</strong></p>
+<p>of the highest-score quintile.</p>
+<p>Median April CTR declined from approximately 0.2683% in Q1 to 0% in Q5.</p>
+<h3>Missing data</h3>
+<p>April average position was unavailable for 1,121 validation items. Those items were excluded only from the April-position correlation analysis.</p>
+<h3>Leakage check</h3>
+<p>The explicit leakage check found no April validation fields among the March scoring features.</p>
+<p><strong>Leakage check: PASSED.</strong></p>
+<h2>6. Interpretation</h2>
+<p>Higher March opportunity scores were generally associated with weaker subsequent April search performance.</p>
+<p>The combined score showed a stronger association with April average position than the CTR-only baseline.</p>
+<p>However, the combined score did not outperform the CTR-only baseline for April CTR. This indicates that adding the ranking-position signal did not improve the CTR validation metric uniformly.</p>
+<p>The top 20 recommendations were relatively homogeneous. They primarily had:</p>
+<ul>
+<li>March CTR = 0</li>
+<ul>
+<li>Average position around 20</li>
+<ul>
+<li>Position band = 11–20</li>
+<ul>
+<li>Positive CTR opportunity gap</li>
+<p>They therefore received the same reason code:</p>
+<code>LOW_CTR_AND_WEAK_POSITION</code>
+<p>and the same recommended action:</p>
+<p><strong>Refresh / Improve CTR</strong></p>
+<p>This concentration is a property of the scoring method and data distribution; the ranking should not be artificially diversified simply to produce different reason codes.</p>
+<p>The score should be treated as a prioritization signal for editorial review rather than an automatic refresh decision.</p>
+<p>The validation is observational and directional. It does not establish that refreshing a page will improve its performance.</p>
+<h2>7. Recommendation</h2>
+<p>Use the opportunity score as a review-queue signal.</p>
+<p>Higher-scoring pages can be inspected earlier by an editor, but the score should not automatically trigger a refresh.</p>
+<p><strong>Suggested review workflow</strong></p>
+<ol>
+<li>Start with high-scoring pages.</li>
+<ol>
+<li>Inspect search intent and page relevance.</li>
+<ol>
+<li>Review title and search snippet opportunities.</li>
+<ol>
+<li>Investigate impressions without clicks.</li>
+<ol>
+<li>Review ranking position and content depth.</li>
+<ol>
+<li>Decide whether the appropriate action is:</li>
+<p>   - Refresh content</p>
+<p>   - Improve title/snippet</p>
+<p>   - Improve topical coverage</p>
+<p>   - Monitor</p>
+<p>   - Make no change</p>
+<ol>
+<li>Monitor subsequent performance after any editorial change.</li>
+<p>The top 20 ranked pages should be treated as a prioritized review queue, not a definitive list of pages that must be refreshed.</p>
+<p>Final editorial decisions remain with the human reviewer.</p>
+<h2>8. Reproducibility</h2>
+<p><strong>Repository:</strong></p>
+<p>https://github.com/moham882/flyrank_ml_internship</p>
+<p><strong>Main capstone notebook:</strong></p>
+<code>work/notebooks/capstone.ipynb</code>
+<p><strong>Validation notebook:</strong></p>
+<code>work/notebooks/w06_validation_audit.ipynb</code>
+<p><strong>Action-playbook notebook:</strong></p>
+<code>work/notebooks/w07_action_playbook.ipynb</code>
+<p><strong>Derived outputs:</strong></p>
+<ul>
+<li>`work/outputs/ranked_refresh_recommendations.csv`</li>
+<ul>
+<li>`work/outputs/quintile_validation.csv`</li>
+<ul>
+<li>`work/outputs/validation_chart_data.csv`</li>
+<ul>
+<li>`work/outputs/validation_results_summary.csv`</li>
+<ul>
+<li>`work/outputs/april_ctr_by_score_quintile.png`</li>
+<p>The analysis used DuckDB, pandas, and SciPy.</p>
+<p>The March 2026 dataset was used for scoring and April 2026 was reserved for validation.</p>
+<p>The underlying FlyRank warehouse requires authorized access. The repository contains the analysis workflow and derived outputs rather than the private warehouse itself.</p>
+<p>An authorized user with the required dataset access can rerun the analysis.</p>
+<h2>9. Acknowledgments &amp; data credit</h2>
+<p>This work was completed as part of the FlyRank ML Internship 2026 capstone.</p>
+<p><strong>Built on the FlyRank ML Internship dataset</strong></p>
+<p>https://flyrank.ai</p>
+<p>The analysis uses pseudonymous content identifiers and aggregated search-performance signals.</p>
+<p>No client names, domains, private search queries, credentials, or raw client-identifying exports are included in the public research paper.</p>
+<p>Thanks to FlyRank for providing the dataset and internship framework used for this analysis.</p>
+</main>
+</body>
+</html>
